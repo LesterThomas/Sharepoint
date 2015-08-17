@@ -1,0 +1,209 @@
+ <meta http-equiv="X-UA-Compatible" content="IE=10" />
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular.min.js"></script>   
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+<script src="https://workspace2.vodafone.com/group/systems%20architecture/SiteCollectionDocuments/AngularApp/angular-chart.js"></script>
+
+<link rel="stylesheet" type="text/css" href="https://workspace2.vodafone.com/group/systems%20architecture/SiteCollectionDocuments/AngularApp/angular-chart.css"/>
+
+   
+<script>   
+ 
+
+	var myAngApp = angular.module('SharePointAngApp', ["chart.js"]);   
+	
+	myAngApp.controller('spServicesController', function ($scope, $http) {   
+	$http(
+		{   
+			method: 'GET',   
+			url: "/group/systems%20architecture/_vti_bin/ListData.svc/CSMMasterList",   
+			headers: { "Accept": "application/json;odata=verbose" }   
+		}
+		).success(function (data, status, headers, config) { 
+			$scope.services = data.d.results;  
+			$scope.labels = ["Identified", "Specified"];
+			$scope.data = [0,0];
+			for(var i=0;i<$scope.services.length;i++) {
+				for(var j=0;j<$scope.labels.length;j++) {
+					if ($scope.services[i].ServiceOperationStatus==$scope.labels[j]) {
+						$scope.data[j]++;
+					}
+				}
+			}
+			$scope.platformlabels = ["Analytics & Intelligence", "Charging & Policy Management", "Contact Center Operations", "CRM, Billing and Commercial Order Management", 
+			"Engterprise Overlay", "HR, Supply & Finance", "Resource Inventory", "Retail Operations & Logistics", "Service Assurance", "Service Fulfilment", "Support & Readiness"];
+			$scope.platformdata = [0,0,0,0,0,0,0,0,0,0,0];
+			for(var i=0;i<$scope.services.length;i++) {
+				for(var j=0;j<$scope.platformlabels.length;j++) {
+					if ($scope.services[i].Platform==$scope.platformlabels[j]) {
+						$scope.platformdata[j]++;
+					}
+				}
+			}			
+
+			
+		}).error(function (data, status, headers, config) {   
+		  alert(status);
+		});  
+	  
+
+		
+    }); 
+	
+	
+
+
+
+</script>  
+
+<div ng-app="SharePointAngApp" class="row">   
+    <div ng-controller="spServicesController" class="span10"> 
+	
+		<table >
+			<tr>
+				<th width="70%" colspan="2">
+					<h1>Common Service Model (CSM) </h1>
+					
+					<br /><br /><br />
+				</th>
+				<th width="10%">
+				</th>
+				<th rowspan="3" width="20%" >
+					<div class="ms-rteElement-Callout1" style="height:130px;width:30em;text-align:left">
+						<h4>This is a Demo Angular JS application accessing SharePoint lists via REST API</h4> 
+						<p> The table below is an Angular app that shows data from the 'CSM Master List' sharepoint list (hosted on this site).</p>
+						<p>For details of how this works, see <a href="https://workspace2.vodafone.com/group/systems%20architecture/Wiki/HTML5%20Frameworks%20-%20Angular%20Bootstrap.aspx">Wiki page</a>.</p>  
+					</div>
+				</th>
+			</tr>
+			<tr>
+				<th>Operation Status</th>
+				<th>Operations per Platform</th>
+			</tr>
+			<tr>
+				<td width="35%">
+					<canvas id="doughnut" class="chart chart-doughnut" data="data" labels="labels"></canvas> 
+				</td>
+				<td width="35%">
+					<canvas id="doughnut" class="chart chart-doughnut" data="platformdata" labels="platformlabels"></canvas> 
+				</td>
+			</tr>
+		</table>
+<br /><br /><br />
+<h1>CSM Master list</h1> 
+        <table class="table table-condensed table-hover" >   
+            <tr class="ms-itmhover">   
+                <th class="ms-vh2">Ref</th>   
+                <th class="ms-vh2">Service Name</th> 
+                <th class="ms-vh2">Operation</th> 
+                <th class="ms-vh2">Platform</th> 				
+                <th class="ms-vh2">Comments</th>   
+                  
+            </tr>   
+            <tr class="ms-itmhover" ng-repeat="service in services">   
+                <td class="ms-vb2">{{service.Ref}}</td>   
+                <td class="ms-vb2">{{service.ServiceName}}</td>
+				<td class="ms-vb2">{{service.ServiceOperation}}</td>                 
+				<td class="ms-vb2">{{service.Platform}}</td>   
+                <td class="ms-vb2">{{service.Comments}}</td>   
+                </tr>   
+        </table>   
+    </div>   
+</div>  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

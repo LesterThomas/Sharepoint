@@ -1,0 +1,155 @@
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular.min.js"></script>   
+
+   
+<script>   
+ 
+
+	var myAngApp = angular.module('SharePointAngApp', []);   
+	
+	myAngApp.controller('spEntitiesController', function ($scope, $http) {   
+	$http(
+		{   
+			method: 'GET',   
+			url: "/group/systems%20architecture/_vti_bin/ListData.svc/COAPEntities",   
+			headers: { "Accept": "application/json;odata=verbose" }   
+		}
+		).success(function (data, status, headers, config) { 
+
+			$scope.entities = data.d.results;  
+			
+		}).error(function (data, status, headers, config) {   
+		  console.log(status);
+		});  
+	  
+
+		
+    }); 
+	
+
+</script>  
+
+
+
+
+
+<div ng-app="SharePointAngApp" class="row">   
+    <div ng-controller="spEntitiesController" > 
+		<h1>COAP Entities</h1> 
+        <table  >   
+            <tr>   
+                <th class="ms-vh2">Data Domain</th>   
+                <th class="ms-vh2">Aggregate Entity</th> 
+                <th class="ms-vh2">Aggregate Entity Description</th> 
+                <th class="ms-vh2">Entity Name</th> 				
+                <th class="ms-vh2">Entity Definition</th>   
+				<th class="ms-vh2">COBRAL1</th> 				
+            </tr>   
+            <tr ng-repeat="entity in entities">   
+                <td class="ms-vb2">{{entity.DataDomain}}</td>   
+                <td class="ms-vb2">{{entity.AggregateEntity}}</td>
+				<td class="ms-vb2">{{entity.AggregateEntityDescription}}</td>                 
+				<td class="ms-vb2">{{entity.EntityName}}</td>   
+                <td class="ms-vb2">{{entity.EntityDefinition}}</td>   
+				<td class="ms-vb2">{{entity.COBRAL1}}</td>  
+            </tr>   
+        </table>   
+    </div>   
+</div>  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

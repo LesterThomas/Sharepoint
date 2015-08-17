@@ -1,0 +1,145 @@
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>   
+
+<style>
+.JQTestClass {
+    text-align: center;
+    color: red;
+}
+</style>
+   
+
+
+
+<h1>JQuery Test</h1> 
+
+<div class="JQTestClass" id="JQTest1">This element has ID 'JQTest1' and class 'JQTestClass'</div>
+<br /><br />
+<div class="JQTestClass" id="JQTest2">This element has ID 'JQTest2' and class 'JQTestClass'</div>
+<br /><br />
+
+<p>Enter your Javascript and press Execute</p><input id="JQTestInput" type="textbox"></input>
+<button type="button" onclick="eval(document.getElementById('JQTestInput').value);">Execute</button>
+<br /><br /><br />
+<p>Examples</p>
+<p>
+Hide/Show/Toggle by ID <br />
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$("#JQTest1").hide()</span> <br />
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$("#JQTest1").show()</span> <br />
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$("#JQTest1").toggle()</span> <br />
+</p>
+<p>
+Toggle something else <br/>
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$("#s4-ribbonrow").toggle()</span> <br />
+</p>
+<p>
+Toggle by class <br/>
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$(".JQTestClass").toggle()</span> <br />
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$(".ms-cui-tt-span").toggle()</span> <br />
+</p>
+<p>
+Fade Toggle  <br/>
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$(".JQTestClass").fadeToggle()</span> <br />
+</p>
+<p>
+Change Content  <br/>
+<span onclick="document.getElementById('JQTestInput').value=this.innerHTML;">$("#JQTest1").text('Cool!')</span> <br />
+ </br />
+</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

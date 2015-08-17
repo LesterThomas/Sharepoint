@@ -1,0 +1,154 @@
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular.min.js"></script>   
+
+   
+<script>   
+ 
+
+	var myAngApp = angular.module('SharePointAngApp', []);   
+	
+	myAngApp.controller('spServicesController', function ($scope, $http) {   
+	$http(
+		{   
+			method: 'GET',   
+			url: "/group/systems%20architecture/_vti_bin/ListData.svc/PlatformTargetArchitecture",   
+			headers: { "Accept": "application/json;odata=verbose" }   
+		}
+		).success(function (data, status, headers, config) { 
+
+			$scope.services = data.d.results;  
+			
+		}).error(function (data, status, headers, config) {   
+		  console.log(status);
+		});  
+	  
+
+		
+    }); 
+	
+
+</script>  
+
+
+
+
+
+<div ng-app="SharePointAngApp" class="row">   
+    <div ng-controller="spServicesController" > 
+		<h1>Platform Architecture</h1> 
+		<h1> We earned that raise!</h1>
+        <table  >   
+            <tr>   
+                <th class="ms-vh2">LocalMarketsValue</th>   
+                <th class="ms-vh2">Title</th> 
+                <th class="ms-vh2">SupplierValue</th> 
+                <th class="ms-vh2">ApprovalStatus</th> 				
+                
+            </tr>   
+            <tr ng-repeat="service in services">   
+                <td class="ms-vb2">{{service.LocalMarketsValue}}</td>   
+                <td class="ms-vb2">{{service.Title}}</td>
+				<td class="ms-vb2">{{service.SupplierValue}}</td>                 
+				<td class="ms-vb2">{{service.ApprovalStatus}}</td>   
+                
+            </tr>   
+        </table>   
+    </div>   
+</div>  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

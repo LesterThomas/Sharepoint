@@ -1,0 +1,734 @@
+
+<!-- Angular framework --> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.3/angular.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.3/angular-sanitize.min.js"></script>   
+
+<!-- Angular-chart directive that wraps Chart.js framework --> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+<script src="https://workspace2.vodafone.com/group/systems%20architecture/SiteCollectionDocuments/AngularFramework/js/angular-chart.js"></script>
+<link rel="stylesheet" type="text/css" href="https://workspace2.vodafone.com/group/systems%20architecture/SiteCollectionDocuments/AngularFramework/css/angular-chart.css"/>
+
+<!-- Bootstrap directive that wraps bootstrap framework --> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.0/ui-bootstrap-tpls.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap-theme.min.css"/>
+
+<style>
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+.description { font-size: 130%; }
+</style>
+   
+<script>   
+ 	
+ 	var sharepointRestApi = "/group/systems%20architecture/_vti_bin/ListData.svc/";
+
+	var myAngApp = angular.module('SharePointAngApp', ["chart.js","ui.bootstrap","ngSanitize"]);   
+	
+	myAngApp.controller('spServicesController', function ($scope, $http) {   
+
+	// The following data and funcitons provide the filtering capability
+	$scope.filter={ };			//Object that stores the filter values (initially no filter set)
+	$scope.filterButtons=[];	//Array that lists the button text corresponding to the filter buttons
+
+	//utility function co convert the Object name (from Sharepoint list) into a user-friendly value
+	$scope.filterGetText=function(inText) {
+		var text;
+		if (inText=="PriorityValue") {
+			text="Priority";
+		}
+		if (inText=="OriginationValue") {
+			text="Origin";
+		}
+		if (inText=="OpportunityStatusValue") {
+			text="Status";
+		}
+		if (inText=="OpportunityClassificationValue") {
+			text="Classification";
+		}
+		return text;
+	};
+
+	// utility function that builds the list of filter buttons corresponding to the filter object
+	$scope.buildFilterButtons=function() { 
+		$scope.filterButtons.splice(0,$scope.filterButtons.length);
+		for(var propt in $scope.filter){
+			text=$scope.filterGetText(propt);		
+			$scope.filterButtons.push(text + ': ' + $scope.filter[propt]);
+		}
+		$scope.buildSummaryModel(); //rebuild the summary model based on new filter;	
+	};
+
+	// onclick handler for the Classificaiton doughnut chart
+	$scope.onClassificationClick = function (points, evt) {
+		console.log(points[0].label);
+		$scope.filter.OpportunityClassificationValue= points[0].label;
+		$scope.buildFilterButtons();
+	}
+	  
+	// onclick handler for the Status doughnut chart
+	$scope.onStatusClick = function (points, evt) {
+		console.log(points[0].label);
+		$scope.filter.OpportunityStatusValue= points[0].label; 
+		$scope.buildFilterButtons();
+	  };	
+	  
+	// onclick handler for the Origin doughnut chart
+	$scope.onOriginClick = function (points, evt) {
+		console.log(points[0].label);
+		$scope.filter.OriginationValue= points[0].label; 
+		$scope.buildFilterButtons();
+	  };	
+	  
+	// onclick handler for the Priority doughnut chart
+	$scope.onPriorityClick = function (points, evt) {
+		console.log(points[0].label);
+		$scope.filter.PriorityValue= points[0].label; 
+		$scope.buildFilterButtons();
+	  };	
+
+	// onclick handler for the filter buttons (to remove the filters)
+	$scope.removeFilter = function(inButtonIndex) {
+		console.log(inButtonIndex);
+		var property=$scope.filterButtons[inButtonIndex].split(':')[0];
+		if (property=="Classification"){
+			delete $scope.filter.OpportunityClassificationValue;
+		}
+		if (property=="Status"){
+			delete $scope.filter.OpportunityStatusValue;
+		}
+		if (property=="Origin"){
+			delete $scope.filter.OriginationValue;
+		}
+		if (property=="Priority"){
+			delete $scope.filter.PriorityValue;
+		}
+		$scope.filterButtons.splice(inButtonIndex,1);
+		$scope.buildSummaryModel(); //rebuild the summary model based on new filter;	
+	}	
+	
+	// apply the filter to the opportunities array	
+	$scope.getFilteredOpportunities=function() {
+		
+		var filteredOpportunities=[];
+		//go through each opportunity and if not in filter, add to filtered array
+		for(var i=0;i<$scope.opportunities.length;i++) {
+			var includeOpportunity=true;
+			for(var propt in $scope.filter){
+				if (propt=="PriorityValue") {
+					if ($scope.opportunities[i].PriorityValue!=$scope.filter.PriorityValue) {
+						includeOpportunity=false;
+					}
+				}
+				if (propt=="OriginationValue") {
+					if ($scope.opportunities[i].OriginationValue!=$scope.filter.OriginationValue) {
+						includeOpportunity=false;
+					}				
+				}
+				if (propt=="OpportunityStatusValue") {
+					if ($scope.opportunities[i].OpportunityStatusValue!=$scope.filter.OpportunityStatusValue) {
+						includeOpportunity=false;
+					}				
+				}
+				if (propt=="OpportunityClassificationValue") {
+					if ($scope.opportunities[i].OpportunityClassificationValue!=$scope.filter.OpportunityClassificationValue) {
+						includeOpportunity=false;
+					}				
+				}			
+			}
+		if (includeOpportunity) {
+			filteredOpportunities.push($scope.opportunities[i]);
+			}
+		}
+		return filteredOpportunities;
+	}
+
+  	//build the Model to include the details of the Architecture SPOC (from separate sharepoint list)
+	$scope.getArchitecturePointOfContact = function(uri, id){
+		//download the opportunities from REST API
+		$http(
+			{   
+				method: 'GET',   
+				url: uri,   
+				headers: { "Accept": "application/json;odata=verbose" }   
+			}
+			).success(function (data, status, headers, config) { 
+				$scope.opportunities[id].ArchitecturePointOfContact.data=data.d.results[0];
+			}).error(function (data, status, headers, config) {   
+			  alert("error: Status: " + status + " data: " + data + " headers: " + headers + " config: " + config);
+			});  
+		}
+		
+	// utility function to convert the sharepoint date object to test according to the users Locale settings
+	$scope.convertToDateText = function(inDate){
+		var theOutputDate;
+		var theOutputDateText="";
+		if (inDate) {
+			theOutputDate=inDate.substring(6,19);
+			theOutputDate=new Date(parseInt(theOutputDate));
+			theOutputDateText=theOutputDate.toLocaleDateString();
+		}
+		return theOutputDateText;
+	}	
+
+	// build the Model for the summary data (shown in the Doughnut graphs)
+	
+	$scope.doghnutOptions={    legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li class=\"pull-left\"><span style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>"};
+	$scope.buildSummaryModel=function(){
+		console.log('building summary model');
+		
+		//process the opportunities to create a model suitable for the summary graphs
+		
+		//filter out opportunities
+		var filteredOpportunities=$scope.getFilteredOpportunities();
+		
+		$scope.classificationlabels = ["Continuous Improvement", "Growth","Rationalisation","Transformation"];
+		$scope.classificationdata = [0,0,0,0];
+		for(var i=0;i<filteredOpportunities.length;i++) {
+			
+			for(var j=0;j<$scope.classificationlabels.length;j++) {
+				if (filteredOpportunities[i].OpportunityClassificationValue==$scope.classificationlabels[j]) {
+					$scope.classificationdata[j]++;
+				}
+			}
+		}
+		
+		$scope.statuslabels = ["Created", "Impact Assessed","In Progress", "Completed"];
+		$scope.platformdata = [0,0,0,0];
+		for(var i=0;i<filteredOpportunities.length;i++) {
+			for(var j=0;j<$scope.statuslabels.length;j++) {
+				if (filteredOpportunities[i].OpportunityStatusValue==$scope.statuslabels[j]) {
+					$scope.platformdata[j]++;
+				}
+			}
+		}	
+
+		$scope.originlabels = ["External Group Function", "Internal Systems COE","External Local Market"];
+		$scope.origindata = [0,0,0];
+		for(var i=0;i<filteredOpportunities.length;i++) {
+			for(var j=0;j<$scope.originlabels.length;j++) {
+				if (filteredOpportunities[i].OriginationValue==$scope.originlabels[j]) {
+					$scope.origindata[j]++;
+				}
+			}
+		}
+
+		$scope.prioritylabels = ["0 Very Low", "1 Low", "2 Medium","3 High", "4 Very High"];
+		$scope.prioritydata = [0,0,0,0,0];
+		for(var i=0;i<filteredOpportunities.length;i++) {
+			for(var j=0;j<$scope.prioritylabels.length;j++) {
+				if (filteredOpportunities[i].PriorityValue==$scope.prioritylabels[j]) {
+					$scope.prioritydata[j]++;
+				}
+			}
+		}			
+	}
+	
+	//download the opportunities from REST API
+	$http(
+		{   
+			method: 'GET',   
+			url: sharepointRestApi + "OpportunityTracker",   
+			headers: { "Accept": "application/json;odata=verbose" }   
+		}
+		).success(function (data, status, headers, config) { 
+
+			//store the opportunities in scope
+			$scope.opportunities = data.d.results;  
+
+			//process the opportunities to get the additional details for the deferred entries (where the JSON points to other REST API's)
+			for(var i=0;i<$scope.opportunities.length;i++) {
+				//ArchitecturePointOfContact
+				$scope.getArchitecturePointOfContact($scope.opportunities[i].ArchitecturePointOfContact.__deferred.uri,i);
+
+				//convert date to text
+				$scope.opportunities[i].CreatedText=$scope.convertToDateText($scope.opportunities[i].Created);
+				$scope.opportunities[i].ModifiedText=$scope.convertToDateText($scope.opportunities[i].Modified);
+				$scope.opportunities[i].RequestDateText=$scope.convertToDateText($scope.opportunities[i].RequestDate);
+				$scope.opportunities[i].EstimatedStartDateText=$scope.convertToDateText($scope.opportunities[i].EstimatedStartDate);
+				$scope.opportunities[i].EstimatedEndDateText=$scope.convertToDateText($scope.opportunities[i].EstimatedEndDate);
+
+				//create empty array to put the tasks into
+				$scope.opportunities[i].Tasks=[];
+			}
+
+
+			$scope.buildSummaryModel();		
+			
+			
+			//download the opportunity tasks from REST API
+			$http(
+				{   
+					method: 'GET',   
+					url: sharepointRestApi + "OpportunityTrackerTasks",   
+					headers: { "Accept": "application/json;odata=verbose" }   
+				}
+				).success(function (data, status, headers, config) { 
+					
+					//store the opportunities in scope
+					$scope.opportunityTasks = data.d.results;
+					//alert($scope.opportunityTasks.length);
+					//process each task to add it to the corresponding opportunity
+					for (var i=0; i<$scope.opportunityTasks.length;i++){
+						//alert($scope.opportunityTasks[i].Id + ' ' + $scope.opportunityTasks[i].Parent_OpportunityId);
+						$scope.opportunities[($scope.opportunityTasks[i].Parent_OpportunityId)-1].Tasks.push($scope.opportunityTasks[i]);  //Sharepoint lists start at 1, Javascript arrays start at 0
+
+						
+
+						//convert date to text
+						$scope.opportunityTasks[i].CreatedText=$scope.convertToDateText($scope.opportunityTasks[i].Created);
+						$scope.opportunityTasks[i].ModifiedText=$scope.convertToDateText($scope.opportunityTasks[i].Modified);
+						$scope.opportunityTasks[i].EstimatedStartDateText=$scope.convertToDateText($scope.opportunityTasks[i].EstimatedStartDate);
+						$scope.opportunityTasks[i].EstimatedEndDateText=$scope.convertToDateText($scope.opportunityTasks[i].EstimatedEndDate);
+					}
+
+				}).error(function (data, status, headers, config) {   
+					alert("error: Status: " + status + " data: " + data + " headers: " + headers + " config: " + config);
+				});  	
+
+			
+		}).error(function (data, status, headers, config) {   
+		  alert("error: Status: " + status + " data: " + data + " headers: " + headers + " config: " + config);
+		});  
+		
+    }); 
+	
+
+
+</script>  
+
+<div  class="col-lg-12">
+	<div ng-app="SharePointAngApp" class="row"  class="col-lg-12">   
+	    <div ng-controller="spServicesController" > 
+		
+			<div class="col-lg-12 col-sm-12">
+				<h1>Opportunities </h1>
+			</div>
+
+			<!--  Doughnut graphs view using the angular-chart.js framework  -->				
+			<div class="col-lg-12 col-sm-12">
+	            <div class="panel panel-default">
+	                <div class="panel-heading">
+	                	<p>Analysis</p>
+	                </div>
+		 		    <div class="panel-body"> 
+		 		    	<div class="col-lg-3 col-sm-6">
+		 		    		<p><br />Classification</p>
+		 		    		<canvas id="doughnut" click="onClassificationClick" options="doghnutOptions" class="chart chart-doughnut" data="classificationdata" labels="classificationlabels" legend="true"></canvas>
+						</div>
+		 		    	<div class="col-lg-3 col-sm-6">
+		 		    		<p><br />Status</p>
+		 		    		<canvas id="doughnut" click="onStatusClick" options="doghnutOptions" class="chart chart-doughnut" data="platformdata" labels="statuslabels" legend="true"></canvas>
+						</div>
+		 		    	<div class="col-lg-3 col-sm-6">
+		 		    		<p><br />Origin</p>
+		 		    		<canvas id="doughnut" click="onOriginClick" options="doghnutOptions" class="chart chart-doughnut" data="origindata" labels="originlabels" legend="true"></canvas>
+		 		    	</div>
+		 		    	<div class="col-lg-3 col-sm-6">
+		 		    		<p><br />Priority</p>
+		 		    		<canvas id="doughnut" click="onPriorityClick" options="doghnutOptions" class="chart chart-doughnut" data="prioritydata" labels="prioritylabels" legend="true"></canvas>
+		 		    	</div>
+		 		    </div>
+		 		</div>
+	 		</div>			
+
+
+			<!--  Panel that shows the current applied filters and allows user to remove a filter (this is only shown when there is an active filter)  -->	
+	 		<div class="col-lg-12 col-sm-12" ng-if="filterButtons.length>0">
+	            <div class="panel panel-default">
+	                <div class="panel-heading">
+	                	<p>Filter</p>
+	                </div>
+		 		    <div class="panel-body"> 	
+						<span ng-repeat="filterButton in filterButtons">
+							<button class="btn btn-sm btn-default" type="button"  ng-click="removeFilter($index);"><span class="glyphicon glyphicon-remove-sign" ></span> {{filterButton}}</button>
+						</span>
+		 		    </div>
+		 		</div>
+	 		</div>	
+
+
+			<!--  Table of opportunities displayed using the bootstrap accordian directive  -->				
+			<div class="container col-lg-12 col-sm-12"> 
+			  	<accordion close-others="false"  >
+				    <accordion-group  is-open="opportunity.open"  ng-repeat="opportunity in opportunities | filter: filter">
+						<accordion-heading class="panel-success" ng-class="{'panel-success':opportunity.open}">{{opportunity.Id}}: {{opportunity.OpportunityTitle}}</accordion-heading>
+						<div class=" col-lg-12 col-sm-12">
+				            <div class="panel panel-success">
+				                <div class="panel-heading">
+				                    Description
+				                </div>
+					 		    <div class="panel-body description" ng-bind-html="opportunity.OpportunityShortDescription">
+					 		     	
+					 		    </div>
+					 		</div>
+				 		</div>
+						&nbsp;
+						<div class=" col-lg-12 col-sm-12">
+				            <div class="panel panel-success">
+				                <div class="panel-heading">
+				                	<p>Details</p>
+				                </div>
+					 		    <div class="panel-body">
+
+									<table class="col-lg-6 col-sm-12" >
+							            <tr>
+							                <th width="30%" class="panel-heading">
+							                    Requestor
+							                </th>
+							                <td width="70%" >
+							                	{{opportunity.NameOfRequestor}}, {{opportunity.RequestorRoleAndFunction}}
+							                </td>
+							            </tr>
+							            <tr>
+							                <th class="panel-heading">
+							                    Sponsor
+							                </th>
+							                <td>
+							                	{{opportunity.SponsorName}}, {{opportunity.SponsorRoleAndFunction}}
+							                </td>
+							            </tr>                
+							            <tr>
+							            	<th class="panel-heading">
+							                    Systems Architecture SPOC
+							                </th>
+							                <td>
+							                	<a href="mailto:{{opportunity.ArchitecturePointOfContact.data.WorkEMail}}">{{opportunity.ArchitecturePointOfContact.data.FirstName}} {{opportunity.ArchitecturePointOfContact.data.LastName}}</a>
+							                </td>
+							            </tr>                
+							            <tr>
+							            	<th class="panel-heading">
+							                    Classification
+							                </th>
+							                <td>
+							                	{{opportunity.OpportunityClassificationValue}}
+							                </td>
+							            </tr>                
+							            <tr>
+							            	<th class="panel-heading">
+							                    Status
+							                </th>
+							                <td>
+							                	{{opportunity.OpportunityStatusValue}}
+							                </td>
+							            </tr>                
+							            <tr>
+							            	<th class="panel-heading">
+							                    Request Origin
+							                </th>
+							                <td>
+							                	{{opportunity.OriginationValue}}
+							                </td>
+							            </tr>                
+							            <tr>
+							            	<th class="panel-heading">
+							                    Architecture Impact (ARIX)
+							                </th>
+							                <td>
+							                	{{opportunity.ARIXRatingValue}}
+							                </td>
+							            </tr>                
+							            <tr>
+							            	<th class="panel-heading">
+							                    Statement of Work
+							                </th>
+							                <td>															 		    
+							                	<p ng-bind-html="opportunity.StatementOfWorkStatusValue"></p>
+							                	<p ng-bind-html="opportunity.StatementOfWorkReference"></p>
+							                	<p ng-bind-html="opportunity.SOWServicesRequested"></p>
+							                	<p ng-bind-html="opportunity.SOWServiceDeliverables"></p>
+							                	<p ng-bind-html="opportunity.SOWProjectOverview"></p>
+							                </td>
+							            </tr>                
+
+							            <tr>
+							            	<th class="panel-heading">
+							                    Requested
+							                </th>
+							                <td>
+							                	<p>{{opportunity.RequestDateText}}</p>
+							                </td>
+							            </tr>                
+
+							            <tr>
+							            	<th class="panel-heading">
+							                    Est. start
+							                </th>
+							                <td>
+								 		     	<p>{{opportunity.EstimatedStartDateText}}</p> 
+							                </td>
+							            </tr>                
+
+							            <tr>
+							            	<th class="panel-heading">
+							                    Est complete
+							                </th>
+							                <td>
+								 		     	<p>{{opportunity.EstimatedEndDateText}}</p>
+							                </td>
+							            </tr>                
+
+							        </table>
+
+
+
+							        <table class="col-lg-6 col-sm-12" >
+							        	<tr>
+							            	<th width="30%" class="panel-heading">
+							                    Budget (this FY)
+							                </th>
+							                <td width="70%" >
+							                	{{opportunity.OpportunityBudgetThisFY}}
+							                </td>
+							            </tr>
+							            <tr>
+							            	<th class="panel-heading">
+							                    Budget (total)
+							                </th>
+							                <td>
+							                	{{opportunity.TotalOpportunityBudget}}
+							                </td>
+							            </tr>            
+							            <tr>
+							            	<th class="panel-heading">
+							                    Budget status
+							                </th>
+							                <td>
+							                	{{opportunity.BudgetStatusValue}}
+							                </td>
+							            </tr>            
+							            <tr>
+							            	<th class="panel-heading">
+							                    Benefits
+							                </th>
+							                <td>
+							                	<p>{{opportunity.QuantitativeBenefits}}</p>
+								 		     	<p>{{opportunity.QualitativeBenefits}}</p>
+							                </td>
+							            </tr>
+							            <tr>
+							            	<th class="panel-heading">
+							                    Priority
+							                </th>
+							                <td> 
+							                	<p>{{opportunity.PriorityValue}} ({{opportunity.PrioritisedByManagementTeam}})</p>
+							                </td>
+							            </tr>
+							            <tr>
+							            	<th class="panel-heading">
+							                    Capitalisation
+							                </th>
+							                <td>
+							                	{{opportunity.EstimatedCapitalisation}}
+							                </td>
+							            </tr>
+							            <tr>
+							            	<th class="panel-heading">
+							                    Assumptions and Risks
+							                </th>
+							                <td ng-bind-html="opportunity.AssumptionsAndRisks">
+							                	
+							                </td>
+							            </tr>
+							            <tr>
+							            	<th class="panel-heading">
+							                    
+							                </th>
+							                <td style="text-align: right;">
+							                	<br /><br /><br /><br />									
+												<a class="btn btn-sm btn-success pull-right" role="button" href="/group/systems%20architecture/Lists/Opportunity%20Tracker/EditForm.aspx?ID={{opportunity.Id}}">
+														<span class="glyphicon glyphicon-pencil" ></span> Edit Opportunity 
+												</a>
+												<br /><br /><br /><br /><i>Created {{opportunity.CreatedText}}, Modified: {{opportunity.ModifiedText}}</i>
+							                </td>
+							            </tr>
+							        </table>
+					 		    </div>
+					 		</div>
+				 		</div>
+				 		
+						
+						<div class=" col-lg-12 col-sm-12">
+						&nbsp; 
+				            <div class=" panel panel-success">
+				                <div class="panel-heading">
+				                	<p>Tasks</p>
+				                </div>
+					 		    <div class="panel-body"> 	
+
+
+
+
+									<div class="col-lg-12 col-sm-12" ng-if="opportunity.Tasks.length==0">
+										No tasks to show. 
+									</div>
+									<div class="col-lg-12 col-sm-12" ng-if="opportunity.Tasks.length>0">
+										<table class="col-lg-12 col-sm-12">
+											<tr>
+												<th class="panel-heading">
+													Id
+												</th>
+												<th class="panel-heading">
+													Activity Name
+												</th>
+												<th class="panel-heading">
+													Person
+												</th>
+												<th class="panel-heading">
+													Estimated Start
+												</th>
+												<th class="panel-heading">
+													Estimated End
+												</th>
+												<th class="panel-heading">
+													Percentage Assigned
+												</th>
+												
+											</tr>
+											<tr ng-repeat="task in opportunity.Tasks">
+								           
+								                <td class="panel-body">
+								                	{{task.Id}}
+								                </td>
+												<td class="panel-body">
+								                	{{task.ActivityName}}
+								                </td>
+												<td class="panel-body">
+								                	{{task.Person}}
+								                </td>
+								                <td class="panel-body">  
+								                	{{task.EstimatedStartDateText}}
+								                </td>
+								            	<td class="panel-body">
+								                	{{task.EstimatedEndDateText}}
+								                </td>
+								            	<td class="panel-body">
+								                	{{task.PercentageAssigned*100}}%
+								                
+								                	<a class="btn btn-xs btn-success pull-right" role="button" href="/group/systems%20architecture/Lists/Opportunity%20Tracker%20Tasks/EditForm.aspx?ID={{opportunity.Id}}">
+														<span class="glyphicon glyphicon-pencil" ></span> Edit 
+													</a>
+								                </td>
+								            </tr>
+								        </table>
+										<br />&nbsp;<br />
+								    </div>
+									<div class="col-lg-12 col-sm-12">
+										<a class="btn btn-sm btn-success pull-right" role="button" href="/group/systems%20architecture/Lists/Opportunity%20Tracker%20Tasks/NewForm.aspx?ParentID={{opportunity.Id}}">
+												<span class="glyphicon glyphicon-plus" ></span> New Task 
+										</a>
+									</div>
+					 		    </div>
+					 		</div>
+				 		</div>
+				    </accordion-group>
+			  	</accordion> 
+				<div class="col-lg-12 col-sm-12">
+					<a class="btn btn-sm btn-success pull-right" role="button" href="/group/systems%20architecture/Lists/Opportunity%20Tracker/NewForm.aspx">
+							<span class="glyphicon glyphicon-plus" ></span> New Opportunity 
+					</a>
+				</div>
+			</div> 
+		</div>
+	</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
